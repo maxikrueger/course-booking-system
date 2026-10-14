@@ -1,0 +1,210 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+# Erlaubt einem späteren Push, einen früheren in derselben Branch zu canceln.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  backend:
+    name: Backend (ruff + mypy + pytest)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/backend
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: buchung
+          POSTGRES_USER: buchung
+          POSTGRES_PASSWORD: buchung_dev
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U buchung -d buchung"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      POSTGRES_HOST: localhost
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: buchung
+      POSTGRES_USER: buchung
+      POSTGRES_PASSWORD: buchung_dev
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+        with:
+          version: latest
+          enable-cache: true
+          cache-dependency-glob: apps/backend/uv.lock
+
+      - name: Set up Python via uv
+        run: uv python install 3.12
+
+      - name: Sync dependencies
+        run: uv sync --frozen
+
+      - name: ruff format check
+        run: uv run ruff format --check .
+
+      - name: ruff lint
+        run: uv run ruff check .
+
+      - name: mypy --strict
+        run: uv run mypy .
+
+      - name: pytest (SQLite, schnell)
+        run: uv run pytest --ignore=bookings/tests/test_race_condition.py
+
+      - name: pytest (Race-Condition gegen Postgres)
+        env:
+          DJANGO_SETTINGS_MODULE: backend.settings.test_pg
+        run: uv run pytest bookings/tests/test_race_condition.py
+
+  frontend:
+    name: ${{ matrix.app }} (lint + typecheck + vitest)
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        app: [booking-web, admin-web]
+    defaults:
+      run:
+        working-directory: apps/${{ matrix.app }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 11
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: apps/${{ matrix.app }}/pnpm-lock.yaml
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Typecheck
+        run: pnpm typecheck
+
+      - name: Vitest
+        run: pnpm test
+
+  # Optionaler Job: läuft nur auf Pull Requests, weil er ~5 Minuten kostet
+  # (Browser-Download + dev-Server + DB).
+  e2e:
+    name: Playwright E2E (PR-only)
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    needs: [backend, frontend]
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: buchung
+          POSTGRES_USER: buchung
+          POSTGRES_PASSWORD: buchung_dev
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U buchung -d buchung"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      POSTGRES_HOST: localhost
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: buchung
+      POSTGRES_USER: buchung
+      POSTGRES_PASSWORD: buchung_dev
+      DJANGO_SETTINGS_MODULE: backend.settings.dev
+      DJANGO_SECRET_KEY: ci-only-not-secret
+      ALLOWED_HOSTS: "*"
+      # Die E2E-Suite loggt sich öfter als 5x/Minute ein – sonst greift das
+      # Login-Rate-Limit und Tests schlagen aus dem falschen Grund fehl.
+      RATELIMIT_ENABLE: "False"
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+        with:
+          version: latest
+          enable-cache: true
+          cache-dependency-glob: apps/backend/uv.lock
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 11
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Backend setup
+        working-directory: apps/backend
+        run: |
+          uv sync --frozen
+          uv run python manage.py migrate --noinput
+          uv run python manage.py seed_demo_data
+          uv run python manage.py create_admin
+
+      - name: Start backend
+        working-directory: apps/backend
+        run: |
+          uv run python manage.py runserver 0.0.0.0:8000 &
+          for i in {1..30}; do
+            curl -sf http://localhost:8000/api/v1/courses/ && break
+            sleep 1
+          done
+
+      - name: Booking-web E2E
+        working-directory: apps/booking-web
+        run: |
+          pnpm install --frozen-lockfile
+          pnpm exec playwright install --with-deps chromium
+          pnpm test:e2e
+
+      - name: Admin-web E2E
+        working-directory: apps/admin-web
+        run: |
+          pnpm install --frozen-lockfile
+          pnpm exec playwright install --with-deps chromium
+          pnpm test:e2e
+
+      - name: Upload Playwright reports on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: |
+            apps/booking-web/playwright-report
+            apps/admin-web/playwright-report
+          retention-days: 7

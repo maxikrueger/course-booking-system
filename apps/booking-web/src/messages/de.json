@@ -1,0 +1,113 @@
+{
+  "site": {
+    "title": "Fahrsicherheits-Buchungssystem",
+    "tagline": "Trainings für Auto, Motorrad und Spezialkurse"
+  },
+  "nav": {
+    "home": "Start",
+    "courses": "Alle Kurse",
+    "categories": "Kategorien"
+  },
+  "home": {
+    "hero_title": "Sicher unterwegs. Selbstbewusst fahren.",
+    "hero_lead": "Buche dein Fahrsicherheitstraining in einem unserer Trainingszentren.",
+    "categories_heading": "Kategorien",
+    "categories_lead": "Wähle deine Kursart und finde die passenden Termine."
+  },
+  "courses": {
+    "heading": "Alle Kurse",
+    "lead": "Vergleiche Kurse, Preise und Standorte – buche in wenigen Klicks.",
+    "filter_all": "Alle",
+    "no_results": "Keine Kurse gefunden.",
+    "from": "ab",
+    "duration": "{hours} Stunden",
+    "details": "Details",
+    "next_date": "Nächster Termin: {date}",
+    "no_next_date": "Aktuell keine geplanten Termine."
+  },
+  "course_detail": {
+    "back": "Zurück zu allen Kursen",
+    "sessions_heading": "Verfügbare Termine",
+    "no_sessions": "Aktuell sind keine Termine ausgeschrieben.",
+    "available_spots": "{count, plural, =0 {Keine Plätze frei} =1 {1 Platz frei} other {# Plätze frei}}",
+    "book": "Termin buchen",
+    "book_disabled": "Nicht verfügbar"
+  },
+  "wizard": {
+    "title": "Buchung",
+    "step_termin": "Termin",
+    "step_daten": "Persönliche Daten",
+    "step_bestaetigung": "Bestätigung",
+    "step_done": "Abgeschlossen",
+    "back": "Zurück",
+    "next": "Weiter",
+    "cancel": "Abbrechen",
+    "session_full_toast": "Dieser Termin ist leider voll – bitte wähle einen anderen.",
+    "session_unavailable_toast": "Dieser Termin ist nicht mehr verfügbar.",
+    "no_session_selected": "Es wurde noch kein Termin ausgewählt.",
+    "to_courses": "Zu allen Kursen",
+    "session_summary": "{course} · {date} · {location}",
+    "price": "Preis"
+  },
+  "termin": {
+    "heading": "Termin prüfen",
+    "lead": "Bitte prüfe Datum, Ort und Preis. Mit «Weiter» geht es zur Eingabe deiner Daten.",
+    "available_spots": "{count, plural, =0 {Keine Plätze frei} =1 {1 Platz frei} other {# Plätze frei}}",
+    "select_other": "Anderen Termin wählen"
+  },
+  "daten": {
+    "heading": "Deine Daten",
+    "lead": "Bitte fülle alle Felder vollständig aus.",
+    "section_person": "Person",
+    "section_address": "Adresse",
+    "section_meta": "Weitere Angaben",
+    "salutation": "Anrede",
+    "salutation_mr": "Herr",
+    "salutation_mrs": "Frau",
+    "salutation_div": "Divers",
+    "salutation_placeholder": "Bitte wählen",
+    "first_name": "Vorname",
+    "last_name": "Nachname",
+    "email": "E-Mail",
+    "phone": "Telefon",
+    "street": "Strasse, Hausnummer",
+    "postal_code": "PLZ",
+    "city": "Ort",
+    "country": "Land",
+    "date_of_birth": "Geburtsdatum",
+    "license_date": "Datum Führerausweis (optional)",
+    "license_date_hint": "Erforderlich für WAB-Kurse",
+    "voucher_code": "Gutscheincode (optional)",
+    "notes": "Bemerkungen (optional)"
+  },
+  "bestaetigung": {
+    "heading": "Buchung bestätigen",
+    "lead": "Bitte prüfe alle Angaben sorgfältig. Mit dem Klick auf «Verbindlich buchen» schliesst du den Buchungsvertrag ab.",
+    "binding_banner_title": "Verbindliche Buchung",
+    "binding_banner_text": "Diese Buchung ist ab Bestätigung kostenpflichtig und bindend. Bei Stornierung gelten die AGB.",
+    "section_person": "Person",
+    "section_session": "Termin",
+    "section_meta": "Weitere Angaben",
+    "edit_person": "Daten bearbeiten",
+    "edit_session": "Termin ändern",
+    "accept_terms_label": "Ich akzeptiere die AGB und Datenschutzerklärung.",
+    "submit": "Verbindlich buchen",
+    "submitting": "Wird gebucht …",
+    "submit_error_default": "Buchung fehlgeschlagen. Bitte versuche es erneut.",
+    "submit_error_full": "Dieser Termin ist leider voll geworden. Wir leiten dich zur Termin-Auswahl …",
+    "submit_error_validation": "Bitte überprüfe deine Eingaben."
+  },
+  "erfolg": {
+    "heading": "Vielen Dank für deine Buchung!",
+    "lead": "Wir haben deine Buchung erhalten und freuen uns auf den Kurs.",
+    "booking_number_label": "Buchungsnummer",
+    "session_label": "Termin",
+    "location_label": "Ort",
+    "more_courses": "Weitere Kurse anzeigen"
+  },
+  "footer": {
+    "imprint": "Impressum",
+    "privacy": "Datenschutz",
+    "copyright": "© {year} Fahrsicherheits-Buchungssystem"
+  }
+}

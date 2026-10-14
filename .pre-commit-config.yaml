@@ -1,0 +1,94 @@
+# Pre-Commit-Hooks für das Fahrsicherheits-Buchungssystem.
+#
+# Aktivierung:
+#   pip install pre-commit          # einmalig, falls noch nicht vorhanden
+#   pre-commit install              # registriert die Git-Hooks im Repo
+#   pre-commit run --all-files      # einmaliger Lauf über alles (optional)
+#
+# Standard-Hooks laufen automatisch bei jedem Commit. Langsame Hooks
+# (mypy, tsc) sind als manueller Hook konfiguriert (`stages: [manual]`)
+# und können mit `pre-commit run --hook-stage manual mypy` o.ä.
+# explizit angestossen werden – sonst übernimmt CI das.
+
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: trailing-whitespace
+        exclude: '\.svg$'
+      - id: end-of-file-fixer
+        exclude: '\.svg$|\.ico$'
+      - id: check-yaml
+      - id: check-json
+        exclude: 'tsconfig.*\.json$'
+      - id: check-merge-conflict
+      - id: check-added-large-files
+        args: [--maxkb=500]
+      - id: mixed-line-ending
+        args: [--fix=lf]
+
+  # Backend: ruff (format + lint) – schnell, läuft auf jeden Commit.
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.6.9
+    hooks:
+      - id: ruff
+        name: ruff lint (backend)
+        files: ^apps/backend/.*\.py$
+        args: [--fix, --exit-non-zero-on-fix]
+      - id: ruff-format
+        name: ruff format (backend)
+        files: ^apps/backend/.*\.py$
+
+  # Frontend: prettier (Format) – schnell, läuft auf jeden Commit.
+  - repo: https://github.com/pre-commit/mirrors-prettier
+    rev: v4.0.0-alpha.8
+    hooks:
+      - id: prettier
+        name: prettier (booking-web + admin-web)
+        files: ^apps/(booking-web|admin-web)/.*\.(ts|tsx|js|jsx|json|css|md)$
+        additional_dependencies:
+          - prettier@3.8.3
+
+  # Frontend: eslint – mittelschnell, läuft auf jeden Commit über die
+  # geänderten Dateien.
+  - repo: local
+    hooks:
+      - id: eslint-booking-web
+        name: eslint (booking-web)
+        language: system
+        entry: bash -c 'cd apps/booking-web && pnpm exec eslint --max-warnings=0 --no-warn-ignored "$@"' --
+        files: ^apps/booking-web/.*\.(ts|tsx|js|jsx)$
+        pass_filenames: true
+      - id: eslint-admin-web
+        name: eslint (admin-web)
+        language: system
+        entry: bash -c 'cd apps/admin-web && pnpm exec eslint --max-warnings=0 --no-warn-ignored "$@"' --
+        files: ^apps/admin-web/.*\.(ts|tsx|js|jsx)$
+        pass_filenames: true
+
+  # Langsame Hooks: nur als manueller Hook. CI deckt sie ab; lokal können
+  # sie via `pre-commit run --hook-stage manual <id>` oder vor einem PR
+  # mit `pre-commit run --hook-stage manual --all-files` ausgeführt werden.
+  - repo: local
+    hooks:
+      - id: mypy
+        name: mypy --strict (backend, manual)
+        language: system
+        stages: [manual]
+        entry: bash -c 'cd apps/backend && uv run mypy .'
+        pass_filenames: false
+        files: ^apps/backend/.*\.py$
+      - id: tsc-booking-web
+        name: tsc --noEmit (booking-web, manual)
+        language: system
+        stages: [manual]
+        entry: bash -c 'cd apps/booking-web && pnpm typecheck'
+        pass_filenames: false
+        files: ^apps/booking-web/.*\.(ts|tsx)$
+      - id: tsc-admin-web
+        name: tsc --noEmit (admin-web, manual)
+        language: system
+        stages: [manual]
+        entry: bash -c 'cd apps/admin-web && pnpm typecheck'
+        pass_filenames: false
+        files: ^apps/admin-web/.*\.(ts|tsx)$
