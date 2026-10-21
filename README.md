@@ -11,7 +11,7 @@
 customers and a protected admin UI for courses, dates and bookings.**
 
 Customers browse courses by category, pick a date at a training centre and book a
-seat in three steps — no account required. Staff manage the catalogue, schedule
+seat in three steps, no account required. Staff manage the catalogue, schedule
 sessions, watch capacity and export participant lists from a separate admin app.
 Seats are the scarce resource, so the last free seat is handed out under a row
 lock: two people clicking "book" at the same millisecond produce one booking and
@@ -109,7 +109,7 @@ and either Docker (for the bundled PostgreSQL) or a PostgreSQL 16 of your own.
 
 ```bash
 git clone https://github.com/maxikrueger/course-booking-system.git
-cd buchungssystem-fahrtraining
+cd course-booking-system
 
 make setup       # check tools, create .env files, uv sync, pnpm install
 make db-up       # PostgreSQL 16 via Docker Compose
